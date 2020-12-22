@@ -8,6 +8,15 @@ import collections
 
 SCREEN_DIM = (640, 480)
 
+working = True
+
+steps = 35
+show_help = False
+pause = True
+
+hue = 0
+color = pygame.Color(0)
+
 
 # =======================================================================================
 # класс 2-мерных векторов
@@ -46,6 +55,7 @@ class Vec2d:
 # =======================================================================================
 point_speed = collections.namedtuple('point_speed', 'point, speed')
 
+
 class Polyline:
 
     def __init__(self, point=None, speed=None):
@@ -74,7 +84,7 @@ class Polyline:
             for p_n in range(-1, len(self.line) - 1):
                 pygame.draw.line(gameDisplay, color,
                                  (int(self.line[p_n].point.x), int(self.line[p_n].point.y)),
-                                 (int(self.line[p_n+1].point.x), int(self.line[p_n+1].point.y)), width)
+                                 (int(self.line[p_n + 1].point.x), int(self.line[p_n + 1].point.y)), width)
 
         elif style == "points":
             for p in self.line:
@@ -118,8 +128,8 @@ class Knot(Polyline):
         for i in range(-2, len(self.line) - 2):
             ptn = []
             ptn.append((self.line[i].point + self.line[i + 1].point) * 0.5)
-            ptn.append(self.line[i+1].point)
-            ptn.append((self.line[i+1].point + self.line[i+2].point) * 0.5)
+            ptn.append(self.line[i + 1].point)
+            ptn.append((self.line[i + 1].point + self.line[i + 2].point) * 0.5)
 
             res.extend(self._get_points(ptn))
         return res
@@ -246,20 +256,10 @@ def set_points(points, speeds):
 # =======================================================================================
 # Основная программа
 # =======================================================================================
-if __name__ == "__main__":
-    pygame.init()
-    gameDisplay = pygame.display.set_mode(SCREEN_DIM)
-    pygame.display.set_caption("MyScreenSaver")
-
-    steps = 35
-    working = True
+def run_functional_version():
+    global working, pause, show_help, hue, steps
     points = []
     speeds = []
-    show_help = False
-    pause = True
-
-    hue = 0
-    color = pygame.Color(0)
 
     while working:
         for event in pygame.event.get():
@@ -299,6 +299,15 @@ if __name__ == "__main__":
             draw_help()
 
         pygame.display.flip()
+
+
+
+if __name__ == "__main__":
+    pygame.init()
+    gameDisplay = pygame.display.set_mode(SCREEN_DIM)
+    pygame.display.set_caption("MyScreenSaver")
+
+    run_functional_version()
 
     pygame.display.quit()
     pygame.quit()
