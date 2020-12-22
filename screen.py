@@ -1,7 +1,5 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-from typing import List
-
 import pygame
 import random
 import math
@@ -9,14 +7,14 @@ import collections
 
 SCREEN_DIM = (640, 480)
 
-working = True
 
-steps = 35
-show_help = False
-pause = True
+# working = True
 
-hue = 0
-color = pygame.Color(0)
+# steps = 35
+# show_help = False
+# pause = True
+
+# hue = 0
 
 
 # =======================================================================================
@@ -24,7 +22,7 @@ color = pygame.Color(0)
 # =======================================================================================
 class Vec2d:
 
-    def __init__(self, x=0, y=0):
+    def __init__(self, x=0.0, y=0.0):
         self.x = x
         self.y = y
 
@@ -58,7 +56,6 @@ point_speed = collections.namedtuple('point_speed', 'point, speed')
 
 
 class Polyline:
-
     line: list[point_speed]
 
     def __init__(self, point, speed):
@@ -77,11 +74,12 @@ class Polyline:
 
     def delete(self):
         """метод удаления из ломаной последней точки (Vec2d)"""
-        self.line.pop()
+        if self.line.__len__() !=0:
+            self.line.pop()
 
     def set_points(self):
         """функция перерасчета координат опорных точек"""
-        for i in range(len(self.line)):
+        for i in range(self.line.__len__()):
             point = self.line[i].point + self.line[i].speed
             x, y = point.x, point.y
             self.line[i] = point_speed(point, self.line[i].speed)
@@ -93,7 +91,7 @@ class Polyline:
     def draw_points(self, style="points", width=3, color=(255, 255, 255)):
         """функция отрисовки точек на экране"""
         if style == "line":
-            for p_n in range(-1, len(self.line) - 1):
+            for p_n in range(-1, self.line.__len__() - 1):
                 pygame.draw.line(gameDisplay, color,
                                  (int(self.line[p_n].point.x), int(self.line[p_n].point.y)),
                                  (int(self.line[p_n + 1].point.x), int(self.line[p_n + 1].point.y)), width)
@@ -106,17 +104,18 @@ class Polyline:
 
 class Knot(Polyline):
 
-    def __init__(self, point=None, speed=None, count=35):
+    def __init__(self, point=Vec2d(0, 0), speed=Vec2d(0, 0), count=35, hue=0):
         super().__init__(point, speed)
         self.count = count
+        self.hue = random.randint(1,1000) % 360
 
     @property
     def points(self):
-        return [l.point for l in self.line]
+        return [line.point for line in self.line]
 
     @property
     def speeds(self):
-        return list(l.speed for l in self.line)
+        return [line.speed for line in self.line]
 
     # добавление и пересчёт координат инициируют вызов функции get_knot()
     def append(self, point, speed):
@@ -129,14 +128,13 @@ class Knot(Polyline):
 
     def __get_point(self, points, alpha, deg=None):
         if deg is None:
-            deg = len(points) - 1
+            deg = points.__len__() - 1
         if deg == 0:
             return points[0]
         return points[deg] * alpha + self.__get_point(points, alpha, deg - 1) * (1 - alpha)
 
     def _get_points(self, base_points, count):
         """
-
         :rtype: list[Vec2d]
         """
         alpha = 1 / count
@@ -147,20 +145,18 @@ class Knot(Polyline):
 
     def get_knot(self):
         """
-        :param points: list[Vec2d]
-        :param count: int
         :return: list[Vec2d]
         """
         points = self.points
 
-        if len(points) < 3:
+        if points.__len__() < 3:
             return []
         res = []
-        for i in range(-2, len(points) - 2):
+        for i in range(-2, points.__len__() - 2):
             ptn = []
-            ptn.append((points[i] + points[i+1]) * 0.5)
-            ptn.append(points[i+1])
-            ptn.append((points[i+1] + points[i+2]) * 0.5)
+            ptn.append((points[i] + points[i + 1]) * 0.5)
+            ptn.append(points[i + 1])
+            ptn.append((points[i + 1] + points[i + 2]) * 0.5)
 
             res.extend(self._get_points(ptn, self.count))
         return res
@@ -174,26 +170,9 @@ class Knot(Polyline):
 # =======================================================================================
 # Функции для работы с векторами
 # =======================================================================================
-
-def sub(x, y):
-    """"возвращает разность двух векторов"""
-    return x[0] - y[0], x[1] - y[1]
-
-
-def add(x, y):
-    """возвращает сумму двух векторов"""
-    return x[0] + y[0], x[1] + y[1]
-
-
-def mul(v, k):
-    """возвращает произведение вектора на число"""
-    return v[0] * k, v[1] * k
-
-
-def length(x):
+def len(x):
     """возвращает длину вектора"""
     return math.sqrt(x[0] * x[0] + x[1] * x[1])
-
 
 def vec(x, y):
     """возвращает пару координат, определяющих вектор (координаты точки конца вектора),
@@ -201,114 +180,129 @@ def vec(x, y):
     return sub(y, x)
 
 
-# =======================================================================================
-# Функции отрисовки
-# =======================================================================================
-def draw_points(points, style="points", width=3, color=(255, 255, 255)):
-    """функция отрисовки точек на экране
-    :type points: list[Vec2d]
-    """
-    if style == "line":
-        for p_n in range(-1, len(points) - 1):
-            pygame.draw.line(gameDisplay, color,
-                             (points[p_n].x, points[p_n].y),
-                             (points[p_n + 1].x, points[p_n + 1].y), width)
+class Draw:
 
-    elif style == "points":
-        for p in points:
-            pygame.draw.circle(gameDisplay, color,
-                               (p.x, p.y), width)
+    def __init__(self, working=True, pause=True):
+        self.working = working
+        self.pause = pause
+        self.show_help = False
+        self._active_knot = 0
 
+    # =======================================================================================
+    # Функции отрисовки
+    # =======================================================================================
+    @staticmethod
+    def draw_points(points, style="points", width=3, color=(255, 255, 255)):
+        """функция отрисовки точек на экране
+        :type points: list[Vec2d]
+        """
+        if style == "line":
+            for p_n in range(-1, points.__len__() - 1):
+                pygame.draw.line(gameDisplay, color,
+                                 (points[p_n].x, points[p_n].y),
+                                 (points[p_n + 1].x, points[p_n + 1].y), width)
 
-def draw_help(steps):
-    """функция отрисовки экрана справки программы"""
-    gameDisplay.fill((50, 50, 50))
-    font1 = pygame.font.SysFont("courier", 24)
-    font2 = pygame.font.SysFont("serif", 24)
-    data = []
-    data.append(["F1", "Show Help"])
-    data.append(["R", "Restart"])
-    data.append(["P", "Pause/Play"])
-    data.append(["Num+", "More points"])
-    data.append(["Num-", "Less points"])
-    data.append(["", ""])
-    data.append([str(steps), "Current points"])
+        elif style == "points":
+            for p in points:
+                pygame.draw.circle(gameDisplay, color,
+                                   (p.x, p.y), width)
 
-    pygame.draw.lines(gameDisplay, (255, 50, 50, 255), True, [
-        (0, 0), (800, 0), (800, 600), (0, 600)], 5)
-    for i, text in enumerate(data):
-        gameDisplay.blit(font1.render(
-            text[0], True, (128, 128, 255)), (100, 100 + 30 * i))
-        gameDisplay.blit(font2.render(
-            text[1], True, (128, 128, 255)), (200, 100 + 30 * i))
+    def draw_help(self, steps):
+        """функция отрисовки экрана справки программы"""
+        gameDisplay.fill((50, 50, 50))
+        font1 = pygame.font.SysFont("courier", 24)
+        font2 = pygame.font.SysFont("serif", 24)
+        data = []
+        data.append(["F1", "Show Help"])
+        data.append(["R", "Restart"])
+        data.append(["P", "Pause/Play"])
+        data.append(["LMB click", "Add basic point"])
+        data.append(["RMB click", "Delete basic point"])
+        data.append(["scroll up", "More points"])
+        data.append(["scroll down", "Less points"])
+        data.append(["Num+", "Add line"])
+        data.append(["Num-", "Delete line"])
+        data.append(["0-9", "Select line for modify"])
+        data.append([str(self._active_knot), "Current active line number "])
+        data.append([str(steps), "Current points"])
 
-def run_class_version():
-    global working, pause, steps, show_help, hue
+        pygame.draw.lines(gameDisplay, (255, 50, 50, 255), True, [
+            (0, 0), (800, 0), (800, 600), (0, 600)], 5)
+        for i, text in enumerate(data):
+            gameDisplay.blit(font1.render(
+                text[0], True, (128, 128, 255)), (100, 100 + 30 * i))
+            gameDisplay.blit(font2.render(
+                text[1], True, (128, 128, 255)), (300, 100 + 30 * i))
 
-    point = Vec2d(0, 0)
-    speed = Vec2d(0, 0)
-    knot = Knot(point, speed)
-
-    while working:
+    def do_event(self, knot):
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
-                working = False
+                self.working = False
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_ESCAPE:
-                    working = False
+                    self.working = False
                 if event.key == pygame.K_r:
-                    point = Vec2d(0, 0)
-                    speed = Vec2d(0, 0)
-                    knot=Knot(point, speed)
-                    # ToDo
-                    # points = []
-                    # speeds = []
+                    knot.__init__()# = Knot(Vec2d(0, 0), Vec2d(0, 0))
                 if event.key == pygame.K_p:
-                    pause = not pause
+                    self.pause = not self.pause
+
+                # add line
                 if event.key == pygame.K_KP_PLUS:
-                    knot.count += 1
+                    knot_list.append(Knot())
+                    self._active_knot = knot_list.__len__() - 1
+
+                # delete line
                 if event.key == pygame.K_KP_MINUS:
-                    knot.count -= 1 if knot.count > 1 else 0
+                    knot_list.pop()
+                    if self._active_knot < knot_list.__len__() - 1:
+                        self._active_knot = knot_list.__len__() - 1
+
+                # select active line
+                if event.key in key and event.key <= knot_list.__len__():
+                    self._active_knot = key.index(event.key)
+
                 if event.key == pygame.K_F1:
-                    show_help = not show_help
+                    self.show_help = not self.show_help
 
             if event.type == pygame.MOUSEBUTTONDOWN:
-                if event.button in (1, 4):
+                if event.button == 1:
                     point = Vec2d(*event.pos)
                     speed = Vec2d(random.random() * 2, random.random() * 2)
-                    knot.append(point,speed)
-                    # points.append(event.pos)
-                    # speeds.append((random.random() * 2, random.random() * 2))
-                else:
+                    knot.append(point, speed)
+                elif event.button == 3:
                     knot.delete()
-                    # points.pop()
-                    # speeds.pop()
+                elif event.button == 4:
+                    knot.count += 1
+                elif event.button == 5:
+                    knot.count -= 1 if knot.count > 1 else 0
 
-        gameDisplay.fill((0, 0, 0))
-        hue = (hue + 1) % 360
-        color.hsla = (hue, 100, 50, 100)
-
-        # points: list[Vec2d] = list(l.point for l in knot.line)
-        # speeds: list[Vec2d] = list(l.speed for l in knot.line)
-
-        draw_points(knot.points)
-        draw_points(knot.get_knot(), "line", 3, color)
-        if not pause:
-            knot.set_points()
-        if show_help:
-            draw_help(knot.count)
-
-        pygame.display.flip()
+    def do_draw(self, knot_list):
+        hue = 0
+        color = pygame.Color(0)
+        while self.working:
+            self.do_event(knot_list[self._active_knot])
+            for knot in knot_list:
+                gameDisplay.fill((0, 0, 0))
+                if not self.pause:
+                    color.hsla = (knot.hue, 100, 50, 100)
+                    knot.set_points()
+                self.draw_points(knot.points)
+                self.draw_points(knot.get_knot(), "line", 3, color)
+                if self.show_help:
+                    self.draw_help(knot.count)
+                pygame.display.flip()
 
 
 if __name__ == "__main__":
     pygame.init()
     gameDisplay = pygame.display.set_mode(SCREEN_DIM)
     pygame.display.set_caption("MyScreenSaver")
+    key = [pygame.K_0, pygame.K_1, pygame.K_2, pygame.K_3, pygame.K_4, pygame.K_5, pygame.K_6, pygame.K_7, pygame.K_8, pygame.K_9]
+    draw = Draw(pause=False)
+    knot = Knot()
+    knot_list = [knot]
 
-    # run_functional_version()
-
-    run_class_version()
+    draw.do_draw(knot_list)
 
     pygame.display.quit()
     pygame.quit()
