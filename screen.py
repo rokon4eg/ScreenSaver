@@ -61,7 +61,7 @@ class Polyline:
 
     line: list[point_speed]
 
-    def __init__(self, point=None, speed=None):
+    def __init__(self, point, speed):
         """
         :type point: Vec2d
         :type speed: Vec2d
@@ -349,7 +349,9 @@ def run_class_version():
                 if event.key == pygame.K_ESCAPE:
                     working = False
                 if event.key == pygame.K_r:
-                    pass
+                    point = Vec2d(0, 0)
+                    speed = Vec2d(0, 0)
+                    knot=Knot(point, speed)
                     # ToDo
                     # points = []
                     # speeds = []
