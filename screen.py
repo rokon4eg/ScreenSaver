@@ -83,12 +83,12 @@ class Polyline:
         """функция перерасчета координат опорных точек"""
         for i in range(len(self.line)):
             point = self.line[i].point + self.line[i].speed
-            if point.x > SCREEN_DIM[0] or point.x < 0:
+            x, y = point.x, point.y
+            self.line[i] = point_speed(point, self.line[i].speed)
+            if x > SCREEN_DIM[0] or x < 0:
                 self.line[i].speed.x *= -1
-                # p.speed.x *= -1
-            if point.y > SCREEN_DIM[1] or point.y < 0:
+            if y > SCREEN_DIM[1] or y < 0:
                 self.line[i].speed.y *= -1
-                # p.speed.y *= -1
 
     def draw_points(self, style="points", width=3, color=(255, 255, 255)):
         """функция отрисовки точек на экране"""
