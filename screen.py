@@ -22,7 +22,7 @@ SCREEN_DIM = (1024, 768)
 # =======================================================================================
 class Vec2d:
 
-    def __init__(self, x=0.0, y=0.0):
+    def __init__(self, x, y):
         self.x = x
         self.y = y
 
@@ -74,7 +74,7 @@ class Polyline:
 
     def delete(self):
         """метод удаления из ломаной последней точки (Vec2d)"""
-        if self.line.__len__() !=0:
+        if self.line.__len__() != 0:
             self.line.pop()
 
     def set_points(self):
@@ -87,9 +87,9 @@ class Polyline:
                 self.line[i].speed.x *= -1
             if y > SCREEN_DIM[1] or y < 0:
                 self.line[i].speed.y *= -1
-
+"""
     def draw_points(self, style="points", width=3, color=(255, 255, 255)):
-        """функция отрисовки точек на экране"""
+        '''функция отрисовки точек на экране'''
         if style == "line":
             for p_n in range(-1, self.line.__len__() - 1):
                 pygame.draw.line(gameDisplay, color,
@@ -100,7 +100,7 @@ class Polyline:
             for p in self.line:
                 pygame.draw.circle(gameDisplay, color,
                                    (int(p.point.x), int(p.point.y)), width)
-
+"""
 
 class Knot(Polyline):
 
@@ -112,7 +112,11 @@ class Knot(Polyline):
         # speed = Vec2d(random.random() * 2, random.random() * 2)
         # self.append(Vec2d(100, 100), speed)
 
-    def __init__(self, point=Vec2d(0, 0), speed=Vec2d(0, 0), count=35, hue=0, isfill=False):
+    def __init__(self, point=None, speed=None, count=35, hue=0, isfill=False):
+        if speed == None:
+            speed = Vec2d(random.random() * 2, random.random() * 2)
+        if point == None:
+            point = Vec2d(random.randint(0, SCREEN_DIM[0]), random.randint(0, SCREEN_DIM[1]))
         super().__init__(point, speed)
         self.count = count
         self.hue = random.randint(1,1000) % 360
@@ -171,11 +175,6 @@ class Knot(Polyline):
 
             res.extend(self._get_points(ptn, self.count))
         return res
-
-
-# реализовать возможность удаления «опорной» точки из кривой,
-# реализовать возможность отрисовки на экране нескольких кривых,
-# реализовать возможность ускорения/замедления скорости движения кривой(-ых).
 
 
 # =======================================================================================
@@ -252,6 +251,7 @@ class Draw:
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_ESCAPE:
                     self.working = False
+
                 if event.key == pygame.K_r:
                     knot.__init__()# = Knot(Vec2d(0, 0), Vec2d(0, 0))
                 if event.key == pygame.K_p:
@@ -303,7 +303,7 @@ class Draw:
                 if not self.pause:
                     color.hsla = (knot.hue, 100, 50, 100)
                     knot.set_points()
-                # self.draw_points(knot.points)
+                self.draw_points(knot.points)
                 self.draw_points(knot.get_knot(), "line", 3, color)
                 if self.show_help:
                     self.draw_help()
