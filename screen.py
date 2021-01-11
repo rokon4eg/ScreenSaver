@@ -197,29 +197,29 @@ class Draw:
         self.pause = pause
         self.show_help = False
         self._active_knot = 0
+        self.gameDisplay = pygame.display.set_mode(SCREEN_DIM)
 
     # =======================================================================================
     # Функции отрисовки
     # =======================================================================================
-    @staticmethod
-    def draw_points(points, style="points", width=3, color=(255, 255, 255)):
+    def draw_points(self, points, style="points", width=3, color=(255, 255, 255)):
         """функция отрисовки точек на экране
         :type points: list[Vec2d]
         """
         if style == "line":
             for p_n in range(-1, points.__len__() - 1):
-                pygame.draw.line(gameDisplay, color,
+                pygame.draw.line(self.gameDisplay, color,
                                  (points[p_n].x, points[p_n].y),
                                  (points[p_n + 1].x, points[p_n + 1].y), width)
 
         elif style == "points":
             for p in points:
-                pygame.draw.circle(gameDisplay, color,
+                pygame.draw.circle(self.gameDisplay, color,
                                    (p.x, p.y), width)
 
     def draw_help(self):
         """функция отрисовки экрана справки программы"""
-        gameDisplay.fill((50, 50, 50))
+        self.gameDisplay.fill((50, 50, 50))
         font1 = pygame.font.SysFont("courier", 24)
         font2 = pygame.font.SysFont("serif", 24)
         data = []
@@ -236,12 +236,12 @@ class Draw:
         data.append([str(self._active_knot), "Current active line number "])
         data.append([str(knot_list[self._active_knot].count), "Current points"])
 
-        pygame.draw.lines(gameDisplay, (255, 50, 50, 255), True, [
+        pygame.draw.lines(self.gameDisplay, (255, 50, 50, 255), True, [
             (0, 0), (800, 0), (800, 600), (0, 600)], 5)
         for i, text in enumerate(data):
-            gameDisplay.blit(font1.render(
+            self.gameDisplay.blit(font1.render(
                 text[0], True, (128, 128, 255)), (100, 100 + 30 * i))
-            gameDisplay.blit(font2.render(
+            self.gameDisplay.blit(font2.render(
                 text[1], True, (128, 128, 255)), (300, 100 + 30 * i))
 
     def do_event(self, knot):
@@ -298,7 +298,7 @@ class Draw:
         color = pygame.Color(0)
         while self.working:
             self.do_event(knot_list[self._active_knot])
-            gameDisplay.fill((0, 0, 0))
+            self.gameDisplay.fill((0, 0, 0))
             for knot in knot_list:
                 if not self.pause:
                     color.hsla = (knot.hue, 100, 50, 100)
@@ -312,7 +312,7 @@ class Draw:
 
 if __name__ == "__main__":
     pygame.init()
-    gameDisplay = pygame.display.set_mode(SCREEN_DIM)
+    # gameDisplay = pygame.display.set_mode(SCREEN_DIM)
     pygame.display.set_caption("MyScreenSaver")
     key = [pygame.K_0, pygame.K_1, pygame.K_2, pygame.K_3, pygame.K_4, pygame.K_5, pygame.K_6, pygame.K_7, pygame.K_8, pygame.K_9]
     draw = Draw(pause=False)
