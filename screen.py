@@ -87,20 +87,7 @@ class Polyline:
                 self.line[i].speed.x *= -1
             if y > SCREEN_DIM[1] or y < 0:
                 self.line[i].speed.y *= -1
-"""
-    def draw_points(self, style="points", width=3, color=(255, 255, 255)):
-        '''функция отрисовки точек на экране'''
-        if style == "line":
-            for p_n in range(-1, self.line.__len__() - 1):
-                pygame.draw.line(gameDisplay, color,
-                                 (int(self.line[p_n].point.x), int(self.line[p_n].point.y)),
-                                 (int(self.line[p_n + 1].point.x), int(self.line[p_n + 1].point.y)), width)
 
-        elif style == "points":
-            for p in self.line:
-                pygame.draw.circle(gameDisplay, color,
-                                   (int(p.point.x), int(p.point.y)), width)
-"""
 
 class Knot(Polyline):
 
@@ -135,11 +122,11 @@ class Knot(Polyline):
     # добавление и пересчёт координат инициируют вызов функции get_knot()
     def append(self, point, speed):
         super().append(point, speed)
-        self.get_knot()
+        # self.get_knot()
 
     def set_points(self):
         super().set_points()
-        self.get_knot()
+        # self.get_knot()
 
     def __get_point(self, points, alpha, deg=None):
         if deg is None:
@@ -209,13 +196,13 @@ class Draw:
         if style == "line":
             for p_n in range(-1, points.__len__() - 1):
                 pygame.draw.line(self.gameDisplay, color,
-                                 (points[p_n].x, points[p_n].y),
-                                 (points[p_n + 1].x, points[p_n + 1].y), width)
+                                 (points[p_n].int_pair()),
+                                 (points[p_n + 1].int_pair()), width)
 
         elif style == "points":
             for p in points:
                 pygame.draw.circle(self.gameDisplay, color,
-                                   (p.x, p.y), width)
+                                   (p.int_pair()), width)
 
     def draw_help(self):
         """функция отрисовки экрана справки программы"""
