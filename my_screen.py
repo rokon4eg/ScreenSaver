@@ -99,7 +99,7 @@ class Polyline:
                 pygame.draw.circle(self.gameDisplay, color,
                                    (p.int_pair()), width)
 
-    def draw_help(self, active_knot):
+    def draw_help(self, draw):
         """функция отрисовки экрана справки программы"""
         self.gameDisplay.fill((50, 50, 50))
         font1 = pygame.font.SysFont("courier", 24)
@@ -115,8 +115,8 @@ class Polyline:
         data.append(["Num+", "Add line"])
         data.append(["Num-", "Delete line"])
         data.append(["1-9", "Select line for modify"])
-        data.append([str(active_knot + 1), "Current active line number "])
-        data.append([str(knot_list[active_knot].count), "Current points"])
+        data.append([str(draw.active_knot), "Current active line number "])
+        data.append([str(draw.knot_list[draw.active_knot-1].count), "Current points"])
         pygame.draw.lines(self.gameDisplay, (255, 50, 50, 255), True, [
             (0, 0), (800, 0), (800, 600), (0, 600)], 5)
         for i, text in enumerate(data):
@@ -195,15 +195,17 @@ class Knot(Polyline):
 class Draw:
     MAX_KNOTS = 9
 
-    def __init__(self, working=True):
+    def __init__(self, working=True, knot_list=None):
 
         self.working = working
         self.pause = True
         self.show_help = False
-        self._active_knot = 1
+        self.active_knot = 1
         self.line_key = [pygame.K_1, pygame.K_2, pygame.K_3, pygame.K_4, pygame.K_5, pygame.K_6, pygame.K_7,
                          pygame.K_8,
                          pygame.K_9]
+
+        self.knot_list = knot_list
 
     def do_event(self, knot):
         for event in pygame.event.get():
@@ -213,31 +215,37 @@ class Draw:
                 if event.key == pygame.K_ESCAPE:
                     self.working = False
 
+                # Restart
                 if event.key == pygame.K_r:
                     knot.__init__()
+                    self.knot_list.clear()
+                    self.knot_list.append(knot)
+                    self.active_knot = 1
+                    self.pause = True
+
                 if event.key == pygame.K_p:
                     self.pause = not self.pause
 
                 # add line
                 if event.key == pygame.K_KP_PLUS:
-                    if knot_list.__len__() < self.MAX_KNOTS:
-                        knot_list.append(Knot(isfill=True))
-                        self._active_knot = knot_list.__len__()
+                    if self.knot_list.__len__() < self.MAX_KNOTS:
+                        self.knot_list.append(Knot(isfill=True))
+                        self.active_knot = self.knot_list.__len__()
 
                 # delete line
                 if event.key == pygame.K_KP_MINUS:
-                    if knot_list.__len__() > 1:
-                        active = self._active_knot
-                        knot_list.pop(active - 1)
-                        Len = knot_list.__len__()
+                    if self.knot_list.__len__() > 1:
+                        active = self.active_knot
+                        self.knot_list.pop(active - 1)
+                        Len = self.knot_list.__len__()
                         if active > (Len):
-                            self._active_knot = Len
+                            self.active_knot = Len
 
                 # select active line
                 if event.key in self.line_key:
                     index = self.line_key.index(event.key)
-                    if index < knot_list.__len__():
-                        self._active_knot = index + 1
+                    if index < self.knot_list.__len__():
+                        self.active_knot = index + 1
 
                 if event.key == pygame.K_F1:
                     self.show_help = not self.show_help
@@ -256,12 +264,12 @@ class Draw:
                     knot.count -= 1 if knot.count > 1 else 0
                     if self.pause: knot.get_knot()
 
-    def do_draw(self, knot_list):
+    def do_draw(self):
         color = pygame.Color(0)
         while self.working:
-            self.do_event(knot_list[self._active_knot - 1])
-            knot_list[self._active_knot - 1].gameDisplay.fill((0, 0, 0))
-            for knot in knot_list:
+            self.do_event(self.knot_list[self.active_knot - 1])
+            self.knot_list[self.active_knot - 1].gameDisplay.fill((0, 0, 0))
+            for knot in self.knot_list:
                 knot.draw_points(knot.points)
                 if len(knot.points)>2:
                     if not self.pause:
@@ -270,7 +278,7 @@ class Draw:
                     color.hsla = (knot.hue, 100, 50, 100)
                     knot.draw_points(knot.ext_line, "line", 3, color)
                 if self.show_help:
-                    knot.draw_help(self._active_knot - 1)
+                    knot.draw_help(draw=self)
             pygame.display.flip()
 
 
@@ -279,10 +287,9 @@ if __name__ == "__main__":
     pygame.display.set_caption("MyScreenSaver")
 
     knot = Knot(isfill=False)
-    knot_list = [knot]
 
-    draw = Draw()
-    draw.do_draw(knot_list)
+    draw = Draw(knot_list=[knot])
+    draw.do_draw()
 
     pygame.display.quit()
     pygame.quit()
